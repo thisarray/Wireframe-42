@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>qbert</title>
+  <script src="../../jsgame0.js"></script>
+  <style type="text/css" media="screen">
+body {
+  background-color: white;
+  color: black;
+}
+.hidden {
+  display: none;
+}
+#original {
+  margin-left: 1em;
+}
+  </style>
+</head>
+
+<body>
+<section id="imageLoader" class="hidden">
+  <img class="hidden" src="images/background.png" alt="background" data-name="background">
+  <img class="hidden" src="images/block0.png" alt="block0" data-name="block0">
+  <img class="hidden" src="images/block1.png" alt="block1" data-name="block1">
+  <img class="hidden" src="images/qbert0.png" alt="qbert0" data-name="qbert0">
+  <img class="hidden" src="images/qbert1.png" alt="qbert1" data-name="qbert1">
+  <img class="hidden" src="images/qbert2.png" alt="qbert2" data-name="qbert2">
+  <img class="hidden" src="images/qbert3.png" alt="qbert3" data-name="qbert3">
+</section>
+
+<main>
+<h1>qbert</h1>
+
+<canvas id="screen">
+The game screen appears here if your browser supports the Canvas API.
+</canvas>
+<section id="controls">
+  <button type="button" id="reset">Reset</button>
+  <button type="button" id="pause">Pause</button>
+</section>
+
+<h2>Attribution</h2>
+
+<p><a href="https://wireframe.raspberrypi.org/issues/42">Recreate Qbert's cube-hopping action, pages 64-65, by Mark Vanstone</a>.</p>
+
+<p>Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported</a>.</p>
+
+<h2>Original Python code</h2>
+
+<pre id="original"><code>
+# Q*Bert
+
+WIDTH = HEIGHT = 500
+
+gameState = 0
+blocks = []
+qbert = Actor(&#x27;qbert2&#x27;, center=(250, 80))
+qbert.movex = qbert.movey = qbert.frame = count = 0;
+bounce = [-6,-4,-2,-1,0,0,0,0,0,0,0,0,1,2,4,6]
+
+for r in range(0, 7):
+    for b in range(0, 7-r):
+        blocks.append(Actor(&#x27;block0&#x27;, center=(60+(b*64)+(r*32), 400-(r*48))))
+
+def draw():
+    screen.blit(&quot;background&quot;, (0, 0))
+    for b in range(0, 28): blocks[b].draw()
+    if gameState == 0 or (gameState == 1 and count%4 == 0): qbert.draw()
+    if gameState == 2 : screen.draw.text(&quot;YOU CLEARED THE LEVEL!&quot;, center = (250, 250), owidth=0.5, ocolor=(255,255,255), color=(255,0,255) , fontsize=40)
+
+def update():
+    global gameState, count
+    if gameState == 0:
+        if qbert.movex == 0 and qbert.movey == 0 :
+            if keyboard.left: jump(32,48,3)
+            if keyboard.right: jump(-32,-48,1)
+            if keyboard.up: jump(-32,48,0)
+            if keyboard.down: jump(32,-48,2)
+        if qbert.movex != 0 : move()
+    count += 1;
+
+def move():
+    if qbert.movex &gt; 0 :
+        qbert.x -=2
+        qbert.movex -=2
+    if qbert.movex &lt; 0 :
+        qbert.x +=2
+        qbert.movex +=2
+    if qbert.movey &gt; 0 :
+        qbert.y -=3 - bounce[qbert.frame]
+        qbert.movey -=3
+    if qbert.movey &lt; 0 :
+        qbert.y +=3 + bounce[qbert.frame]
+        qbert.movey +=3
+    qbert.frame +=1
+    if qbert.movex == 0 :
+        checkBlock()
+
+def checkBlock():
+    global gameState
+    block = -1
+    curBlock = 0
+    numSelected = 0
+    for r in range(0, 7):
+        for b in range(0, 7-r):
+            x = 60+(b*64)+(r*32) -2
+            y = 400-(r*48) -32
+            if qbert.x == x and qbert.y == y :
+                block = curBlock
+                blocks[block].image = &quot;block1&quot;
+            curBlock +=1
+    if block == -1 : gameState = 1
+    for b in range(0, 28):
+        if blocks[b].image == &quot;block1&quot; : numSelected += 1
+    if numSelected == 28 : gameState = 2
+
+def jump(x,y,d):
+    qbert.movex = x
+    qbert.movey = y
+    qbert.image = &quot;qbert&quot;+str(d)
+    qbert.frame = 0
+</code></pre>
+</main>
+
+<script>
+// Q*Bert
+WIDTH = 500;
+HEIGHT = 500;
+
+const BOUNCE = [-6, -4, -2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 4, 6];
+
+var gameState, blocks, qbert, count;
+
+function reset() {
+  gameState = 0;
+  qbert = new Actor('qbert2');
+  qbert.center = [250, 80];
+  qbert.movex = 0;
+  qbert.movey = 0;
+  qbert.frame = 0;
+  count = 0;
+  blocks = [];
+  for (let r = 0; r < 7; r++) {
+    for (let b = 0; b < (7 - r); b++) {
+      let block = new Actor('block0');
+      block.center = [60 + (b * 64) + (r * 32), 400 - (r * 48)];
+      blocks.push(block);
+    }
+  }
+}
+
+function draw() {
+  screen.blit("background", [0, 0]);
+  for (let b of blocks) {
+    b.draw();
+  }
+  if ((gameState === 0) || ((gameState === 1) && ((count % 4) === 0))) {
+    qbert.draw();
+  }
+  if (gameState === 2) {
+    screen.draw.text("YOU CLEARED THE LEVEL!", {
+      center: [250, 250],
+      owidth: 0.5,
+      ocolor: [255, 255, 255],
+      color: [255, 0, 255],
+      fontsize: 40
+    });
+  }
+}
+
+function update() {
+  if (gameState === 0) {
+    if ((qbert.movex === 0) && (qbert.movey === 0)) {
+      if (keyboard[keys.LEFT]) {
+        jump(32, 48, 3);
+      }
+      if (keyboard[keys.RIGHT]) {
+        jump(-32, -48, 1);
+      }
+      if (keyboard[keys.UP]) {
+        jump(-32, 48, 0);
+      }
+      if (keyboard[keys.DOWN]) {
+        jump(32, -48, 2);
+      }
+    }
+    if (qbert.movex !== 0) {
+      move();
+    }
+  }
+  count += 1;
+}
+
+function move() {
+  if (qbert.movex > 0) {
+    qbert.posx -= 2;
+    qbert.movex -= 2;
+  }
+  if (qbert.movex < 0) {
+    qbert.posx += 2;
+    qbert.movex += 2;
+  }
+  if (qbert.movey > 0) {
+    qbert.posy -= 3 - BOUNCE[qbert.frame];
+    qbert.movey -= 3;
+  }
+  if (qbert.movey < 0) {
+    qbert.posy += 3 + BOUNCE[qbert.frame];
+    qbert.movey += 3;
+  }
+  qbert.frame += 1;
+  if (qbert.movex === 0) {
+    checkBlock();
+  }
+}
+
+function checkBlock() {
+  let block = -1,
+      curBlock = 0,
+      numSelected = 0;
+  for (let r = 0; r < 7; r++) {
+    for (let b = 0; b < (7 - r); b++) {
+      let x = 60 + (b * 64) + (r * 32) - 2,
+          y = 400 - (r * 48) - 32;
+      if ((qbert.posx === x) && (qbert.posy === y)) {
+        block = curBlock;
+        blocks[block].name = "block1";
+      }
+      curBlock += 1;
+    }
+  }
+  if (block === -1) {
+    gameState = 1;
+  }
+  numSelected = blocks.filter(b => (b.name === "block1")).length;
+  if (numSelected === 28) {
+    gameState = 2;
+  }
+}
+
+function jump(x, y, d) {
+  qbert.movex = x;
+  qbert.movey = y;
+  qbert.name = "qbert" + d;
+  qbert.frame = 0;
+}
+
+window.addEventListener('load', (event) => {
+  images.LOAD('#imageLoader img');
+  reset();
+  screen.set_mode('#screen', '#reset', '#pause');
+});
+</script>
+</body>
+
+</html>
